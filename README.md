@@ -39,7 +39,7 @@ Each request may take one or more of the following parameters:
 
 ### object id
 
-The object id (or just 'id')is the numeric id for the class instance that is being actioned.  For example, in the following, the
+The object id (or just 'id') is the numeric id for the class instance that is being actioned.  For example, in the following, the
 object id is the album id because the call is being made to Albums():
 
 ```
@@ -107,20 +107,20 @@ cloud-api-doc.  The delete method typically returns None.
 
 ## Classes and Methods Reference
 
-### Albums
+### Albums()
 
-| Method | API URL | id | ref id | params | data | files | Sample |
-|--------|---------|----|--------|--------|------|-------|--------|
-| create | POST ../albums | | | | Required - album structure | | albums_create.py |
-| get | GET ../albums/:id | Optional - album id | | | | | albums_get.py |
-| update | PUT ../albums/:id | Required - album id | | | Required - album structure | | albums_update.py |
-| delete | DELETE ../albums/:id | Required  - album id| | | | | albums_delete.py |
-| add_files | POST ../albums/:id/files | Required  - album id| | | Required - list of files | | albums_files_add.py |
-| get_files | GET ../albums/:id/files | Required  - album id| | | | | albums_files_update.py |
-| update_files | PUT ../albums/:id/files | Required  - album id| | | Required - list of files | | albums_files_update.py |
-| remove_file | DELETE ../albums/:id/files | Required  - album id| Required - file id | | | | albums_files_remove.py |
+| Method | API URL | id | ref id | data | Sample |
+|--------|---------|----|--------|------|--------|
+| create | POST ../albums | | | Required | albums_create.py |
+| get | GET ../albums/{id} | Optional | | | albums_get.py |
+| update | PUT ../albums/{id} | Required | | Required | albums_update.py |
+| delete | DELETE ../albums/{id} | Required | | | albums_delete.py |
+| add_files | POST ../albums/{id}/files | Required | | Required | albums_files_add.py |
+| get_files | GET ../albums/{id}/files | Required | | | albums_files_update.py |
+| update_files | PUT ../albums/{id}/files | Required | | Required | albums_files_update.py |
+| remove_file | DELETE ../albums/{id}/files | Required | Required | | albums_files_remove.py |
 
-### Events
+### Events()
 
 | Method | API URL | id | ref id | params | data | files | Sample |
 |--------|---------|----|--------|--------|------|-------|--------|
@@ -130,7 +130,7 @@ cloud-api-doc.  The delete method typically returns None.
 | delete | DELETE ../events/:id | Required - event id | | | | | |
 | get_files | GET ../events/:id/files | Required  - event id| | | | | |
 
-### Files
+### Files()
 
 Note that many of the tag methods are based off of the Files class and not the Tags class.
 
@@ -143,13 +143,13 @@ Note that many of the tag methods are based off of the Files class and not the T
 | get_tags | GET ../files/:id/files | Required  - file id| | | | | files_get_tags.py |
 | remove_tag | DELETE ../files/:id/files | Required  - file id| Required - tag id | | | | files_remove_tag.py |
 
-### Search (Ad-hoc searches)
+### Search() - Ad Hoc Searches
 
 | Method | API URL | id | ref id | params | data | files | Sample |
 |--------|---------|----|--------|--------|------|-------|--------|
 | get | GET ../search/files |  | | Optional | Required - search structure | | search_files_get.py |
 
-### Search_Saved
+### Search_Saved()
 
 | Method | API URL | id | ref id | params | data | files | Sample |
 |--------|---------|----|--------|--------|------|-------|--------|
@@ -159,7 +159,7 @@ Note that many of the tag methods are based off of the Files class and not the T
 | delete | DELETE ../search/saved/:id | Required - saved searchid | | | | | search_saved.py |
 | get_files | GET ../search/saved/:id/files | Required  - saved search id| | Optional | | | search_saved.py |
 
-### Trash
+### Trash()
 
 | Method | API URL | id | ref id | params | data | files | Sample |
 |--------|---------|----|--------|--------|------|-------|--------|
