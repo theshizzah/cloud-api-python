@@ -107,28 +107,32 @@ cloud-api-doc.  The delete method typically returns None.
 
 ## Classes and Methods Reference
 
+This is a breakdown of all the methods available for each class with the relevant supported parameters.  API
+URL refers to the API call from cloud-api-doc for parameter reference.  Sample refers to the Python script in the
+samples folder that demonstrates the API call.
+
 ### Albums()
 
 | Method | API URL | id | ref id | data | Sample |
 |--------|---------|----|--------|------|--------|
-| create | POST ../albums | | | Required | albums_create.py |
-| get | GET ../albums/{id} | Optional | | | albums_get.py |
-| update | PUT ../albums/{id} | Required | | Required | albums_update.py |
-| delete | DELETE ../albums/{id} | Required | | | albums_delete.py |
-| add_files | POST ../albums/{id}/files | Required | | Required | albums_files_add.py |
-| get_files | GET ../albums/{id}/files | Required | | | albums_files_update.py |
-| update_files | PUT ../albums/{id}/files | Required | | Required | albums_files_update.py |
-| remove_file | DELETE ../albums/{id}/files | Required | Required | | albums_files_remove.py |
+| create | POST /albums | | | Required | albums_create.py |
+| get | GET /albums/{id} | Optional | | | albums_get.py |
+| update | PUT /albums/{id} | Required | | Required | albums_update.py |
+| delete | DELETE /albums/{id} | Required | | | albums_delete.py |
+| add_files | POST /albums/{id}/files | Required | | Required | albums_files_add.py |
+| get_files | GET /albums/{id}/files | Required | | | albums_files_update.py |
+| update_files | PUT /albums/{id}/files | Required | | Required | albums_files_update.py |
+| remove_file | DELETE /albums/{id}/files | Required | Required | | albums_files_remove.py |
 
 ### Events()
 
-| Method | API URL | id | ref id | params | data | files | Sample |
-|--------|---------|----|--------|--------|------|-------|--------|
-| create | POST ../events | | | | Required - event structure | | |
-| get | GET ../events/:id | Optional - event id | | Optional | | | events_get.py |
-| update | PUT ../events/:id | Required - event id | | | Required - event structure | | |
-| delete | DELETE ../events/:id | Required - event id | | | | | |
-| get_files | GET ../events/:id/files | Required  - event id| | | | | |
+| Method | API URL | id | params | data | Sample |
+|--------|---------|----|--------|------|--------|
+| create | POST /events | | | Required | |
+| get | GET /events/{id} | Optional | Optional | | events_get.py |
+| update | PUT /events/{id} | Required | | Required | |
+| delete | DELETE /events/{id} | Required | | | |
+| get_files | GET /events/{id}/files | Required | | | |
 
 ### Files()
 
@@ -136,36 +140,36 @@ Note that many of the tag methods are based off of the Files class and not the T
 
 | Method | API URL | id | ref id | params | data | files | Sample |
 |--------|---------|----|--------|--------|------|-------|--------|
-| create | POST ../files | | | | Required - date_time_taken | Required - filename/file handle | files_create.py |
-| get | GET ../files/:id | Optional - file id | | Optional | | | files_get.py |
-| delete | DELETE ../files/:id | Required  - file id| | | | | files_delete.py |
-| add_tags | POST ../files/:id/files | Required  - file id| | | Required - tag structure  | | files_add_tags.py |
-| get_tags | GET ../files/:id/files | Required  - file id| | | | | files_get_tags.py |
-| remove_tag | DELETE ../files/:id/files | Required  - file id| Required - tag id | | | | files_remove_tag.py |
+| create | POST /files | | | | Required | Required | files_create.py |
+| get | GET /files/{id} | Optional | | Optional | | | files_get.py |
+| delete | DELETE /files/{id} | Required | | | | | files_delete.py |
+| add_tags | POST /files/{id}/files | Required | | | Required | | files_add_tags.py |
+| get_tags | GET /files/{id}/files | Required | | | | | files_get_tags.py |
+| remove_tag | DELETE /files/{id}/files | Required | Required | | | | files_remove_tag.py |
 
 ### Search() - Ad Hoc Searches
 
-| Method | API URL | id | ref id | params | data | files | Sample |
-|--------|---------|----|--------|--------|------|-------|--------|
-| get | GET ../search/files |  | | Optional | Required - search structure | | search_files_get.py |
+| Method | API URL | params | data | Sample |
+|--------|---------|--------|------|--------|
+| get | GET /search/files | Optional | Required | search_files_get.py |
 
-### Search_Saved()
+### Search_Saved() - Smart Views
 
-| Method | API URL | id | ref id | params | data | files | Sample |
-|--------|---------|----|--------|--------|------|-------|--------|
-| create | POST ../search/saved | | | | Required - saved search structure | | search_saved.py |
-| get | GET ../search/saved/:id | Optional - saved search id | | | | | search_saved.py |
-| update | PUT ../search/saved/:id | Required - saved search id | | | Required - saved search structure | | search_saved.py |
-| delete | DELETE ../search/saved/:id | Required - saved searchid | | | | | search_saved.py |
-| get_files | GET ../search/saved/:id/files | Required  - saved search id| | Optional | | | search_saved.py |
+| Method | API URL | id | params | data | Sample |
+|--------|---------|----|--------|------|--------|
+| create | POST /search/saved | | | Required | search_saved.py |
+| get | GET /search/saved/{id} | Optional | | | search_saved.py |
+| update | PUT /search/saved/{id} | Required | | Required | search_saved.py |
+| delete | DELETE /search/saved/{id} | Required | | | search_saved.py |
+| get_files | GET /search/saved/{id}/files | Required | Optional | | search_saved.py |
 
 ### Trash()
 
-| Method | API URL | id | ref id | params | data | files | Sample |
+| Method | API URL | id | Sample |
 |--------|---------|----|--------|--------|------|-------|--------|
-| get | GET ../trash |  | | | | | trash.py |
-| delete (empty trash) | DELETE ../trash | | | | | | trash.py |
-| restore_file | GET ../trash/:id/files | Required  - file id| | | | | trash.py |
+| get | GET /trash | | trash.py |
+| delete (empty trash) | DELETE /trash | | trash.py |
+| restore_file | GET /trash/{id}/files | Required | trash.py |
 
 ## Errors
 
