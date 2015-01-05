@@ -22,6 +22,7 @@ albumitems = eyefi.Albums().get()
 for albumitem in albumitems:
     if (albumitem['name'] == 'APITestAlbum'):
         selected_album = albumitem['id']
+        break
 
 ###
 ### Now update the album twice - once to rename to APITestAlbumTest and once to rename it back.

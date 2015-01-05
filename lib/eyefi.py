@@ -1,22 +1,16 @@
 import logging
 import os
 import json
-
-_httplib = None
-
-if not _httplib:
-    try:
-        import requests
-        _httplib = 'requests'
-    except ImportError:
-        print >>sys.stderr, "Error: The Eyefi Python SDK requires the requests library"
+import urllib
+import urllib2
+from uuid import uuid4
 
 ###
 ### Globals
 ###
 
-Api_prefix = 'https://api.eyefi.com/3/'
-Auth_token = None
+API_PREFIX = 'https://api.eyefi.com/3/'
+AUTH_TOKEN = None
 
 def get_home_token():
     ###
@@ -30,35 +24,33 @@ def get_home_token():
         return(auth_data['token'])
 
 def set_token(token):
-    global Auth_token
-    Auth_token = token
+    global AUTH_TOKEN
+    AUTH_TOKEN = token
 
-def get_authheaders():
-    global Auth_token
+def get_authheader():
+    global AUTH_TOKEN
 
-    if Auth_token != None:
-        return { 'Authorization': 'Bearer ' + Auth_token }
+    if AUTH_TOKEN != None:
+        return 'Bearer ' + AUTH_TOKEN
     else:
-        logging.error('Please set a authorization token before making api calls.')
+        logging.error('Please set an authorization token before making api calls.')
 
-def request_error_handler(response):
-    logging.error('Error in API call: ' + response.url)
-    logging.error('Status Code: ' + str(response.status_code))
-    logging.error(response.text)
-    raise RuntimeError(response.text)
+def request_error_handler(response_url, response_code, response_text):
+    logging.error('Error in API call: ' + response_url)
+    logging.error('Status Code: ' + str(response_code))
+    logging.error(response_text)
+    raise RuntimeError(response_text)
 
 ###
 ### Eyefi base class
 ###
 
 class Eyefi(object):
-    def exec_request(self, api_params, data=None, files=None):
-        logging.info('exec_request: ' + str(api_params))
-
-        ### Assemble URL.  URL is of form <Api_prefix>/<objt>/<opt obj_id>/<opt ref_obj>/<optional ref_obj_id>
+    def exec_request(self, api_params, params=None, data=None, files=None):
+        ### Assemble URL.  URL is of form <Api_prefix>/<object>/<opt obj_id>/<opt ref_obj>/<optref_obj_id>
         ### If any parameters are None then skip the rest of the chain
 
-        url = Api_prefix + api_params['object']
+        url = API_PREFIX + api_params['object']
         if 'object_id' in api_params and api_params['object_id'] != None:
             url = url + '/' + str(api_params['object_id'])
             if 'referenced_object' in api_params and api_params['referenced_object'] != None:
@@ -66,37 +58,141 @@ class Eyefi(object):
                 if 'referenced_object_id' in api_params and api_params['referenced_object_id'] != None:
                     url = url + '/' + str(api_params['referenced_object_id'])
 
-        response = None
+        ### Some API calls take additional parameters.  Add them to the URL.
+
+        if (params != None):
+            url = url + '?' + urllib.urlencode(params)
+
+        logging.info('exec_request ' + api_params['op'] + ' for ' + str(url))
+
+        ### GET handler
 
         if api_params['op'] == 'get':
-            logging.info('requests.get: ' + str(url))
+            ### For cases where there is a data element for the GET request, add it as URL parameters
+            if (data != None):
+                url = url + '?' + urllib.urlencode(data)
 
-            response = requests.get(url, headers=get_authheaders())
-            if response.status_code != 200:
-                request_error_handler(response)
+            request = urllib2.Request(url)
+            request.add_header('Authorization', get_authheader())
+            response = urllib2.urlopen(request)
+            if (response.getcode() != 200):
+                request_error_handler(url, response.getcode(), response.read())
+            else:
+                response_text = response.read()
+            response.close()
+            return json.loads(response_text)
 
-        elif api_params['op'] == 'post':
-            logging.info('requests.post: ' + str(url))
+        ### POST handler (no file upload)
 
-            response = requests.post(url, json=data, files=files, headers=get_authheaders())
-            if response.status_code != 200 and response.status_code != 201:
-                request_error_handler(response)
+        elif api_params['op'] == 'post' and files == None:
+            ### Some of the post calls have no data - add a 'null' json doc in this case so urllib2 will do a post
+            if (data == None):
+                data = '{}'
+
+            request = urllib2.Request(url, data=json.dumps(data))
+            request.add_header('Authorization', get_authheader())
+            request.add_header('Content-type', 'application/json')
+            response = urllib2.urlopen(request)
+
+            ### If the POST returns 204, it won't have response_text.  Otherwise it should be 200 or 201.
+            if (response.getcode() == 204):
+                response_text = None
+            elif (response.getcode() != 200 and response.getcode() != 201):
+                request_error_handler(url, response.getcode(), response.read())
+            else:
+                response_text = response.read()
+            response.close()
+
+            ### Return None if the response_text was empty
+            if (response_text != None):
+                return json.loads(response_text)
+            else:
+                return None
+
+        ### POST handler (file upload)
+
+        elif api_params['op'] == 'post' and files != None:
+            parts = []
+            boundary = 'EFFILEHANDLER' + uuid4().hex + 'EFFILEHANDLER'
+
+            ### Handle fields
+            for name, value in data.iteritems():
+                parts.extend( [ '--' + boundary,
+                                'Content-Disposition: form-data; name="%s"' % name,
+                                '',
+                                value
+                              ]
+                            )
+
+            ### Handle files
+            for filename, filehandle in files.iteritems():
+                parts.extend( [ '--' + boundary,
+                                'Content-Disposition: file; name="%s"; filename="%s"' % \
+                                (filename, filename),
+                                'Content-Type: image/jpeg',
+                                '',
+                                filehandle.read()
+                              ]
+                            )
+
+            ### Closing boundary and convert to string
+            parts.extend(['--' + boundary + '--'])
+            request_body_str = '\r\n'.join(parts)
+
+            ### Process the upload request
+
+            request = urllib2.Request(url)
+            request.add_header('Authorization', get_authheader())
+            request.add_header('Content-type', 'multipart/form-data; boundary=' + boundary)
+            request.add_header('Content-length', len(request_body_str))
+            request.add_data(request_body_str)
+            response = urllib2.urlopen(request)
+
+            if (response.getcode() != 200 and response.getcode() != 201):
+                request_error_handler(url, response.getcode(), response.read())
+            else:
+                response_text = response.read()
+            response.close()
+            return json.loads(response_text)
+
+        ### PUT handler
 
         elif api_params['op'] == 'put':
-            logging.info('requests.put: ' + str(url))
+            opener = urllib2.build_opener(urllib2.HTTPHandler)
+            request = urllib2.Request(url, data=json.dumps(data))
+            request.add_header('Authorization', get_authheader())
+            request.add_header('Content-type', 'application/json')
+            request.get_method = lambda: 'PUT'
+            response = opener.open(request)
 
-            response = requests.put(url, json=data, headers=get_authheaders())
-            if response.status_code != 200 and response.status_code != 201:
-                request_error_handler(response)
+            if (response.getcode() != 200 and response.getcode() != 201):
+                request_error_handler(url, response.getcode(), response.read())
+            else:
+                response_text = response.read()
+            response.close()
+            return json.loads(response_text)
+
+        ### DELETE handler
 
         elif api_params['op'] == 'delete':
-            logging.info('requests.post: ' + str(url))
+            opener = urllib2.build_opener(urllib2.HTTPHandler)
+            request = urllib2.Request(url)
+            request.add_header('Authorization', get_authheader())
+            request.get_method = lambda: 'DELETE'
+            response = opener.open(request)
 
-            response = requests.delete(url, headers=get_authheaders())
-            if response.status_code != 204:
-                request_error_handler(response)
+            if (response.getcode() != 204):
+                request_error_handler(url, response.getcode(), response.read())
+            else:
+                response_text = response.read()
+            response.close()
+            return None
 
-        return response
+        ### Illegal operation
+
+        else:
+            raise NotImplementedError(api_params['op'] + ' ' + str(data) + ' ' + str(files))
+
 
 class Eyefi_Base(Eyefi):
     ###
@@ -107,30 +203,28 @@ class Eyefi_Base(Eyefi):
         self.object_name = None
 
     def create(self, data, files=None):
-        response = self.exec_request({'op': 'post',
-                                      'object': self.object_name},
-                                     data,
-                                     files)
-        return response.json()
+        return self.exec_request({'op': 'post',
+                                  'object': self.object_name},
+                                  data=data,
+                                  files=files)
 
-    def get(self, id=None):
-        response = self.exec_request({'op': 'get',
-                                      'object': self.object_name,
-                                      'object_id': id})
-        return response.json()
+    def get(self, id=None, data=None, params=None):
+        return self.exec_request({'op': 'get',
+                                  'object': self.object_name,
+                                  'object_id': id},
+                                  data=data,
+                                  params=params)
 
     def update(self, id, data):
-        response = self.exec_request({'op': 'put',
-                                      'object': self.object_name,
-                                      'object_id': id},
-                                     data)
-        return response.json()
+        return self.exec_request({'op': 'put',
+                                 'object': self.object_name,
+                                 'object_id': id},
+                                 data=data)
 
-    def delete(self, id):
-        response = self.exec_request({'op': 'delete',
-                                      'object': self.object_name,
-                                      'object_id': id})
-        return None
+    def delete(self, id=None):
+        return self.exec_request({'op': 'delete',
+                                  'object': self.object_name,
+                                  'object_id': id})
 
 ###
 ### Albums class
@@ -141,35 +235,31 @@ class Albums(Eyefi_Base):
         self.object_name = 'albums'
 
     def add_files(self, id, data):
-        response = self.exec_request({'op': 'post',
-                                      'object': self.object_name,
-                                      'object_id': id,
-                                      'referenced_object': 'files'},
-                                     data)
-        return response.json()
+        return self.exec_request({'op': 'post',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'files'},
+                                  data=data)
 
     def get_files(self, id):
-        response = self.exec_request({'op': 'get',
-                                      'object': self.object_name,
-                                      'object_id': id,
-                                      'referenced_object': 'files'})
-        return response.json()
+        return self.exec_request({'op': 'get',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'files'})
 
     def update_files(self, id, data):
-        response = self.exec_request({'op': 'put',
-                                      'object': self.object_name,
-                                      'object_id': id,
-                                      'referenced_object': 'files'},
-                                     data)
-        return response.json()
+        return self.exec_request({'op': 'put',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'files'},
+                                  data=data)
 
     def remove_file(self, id, ref_id):
-        response = self.exec_request({'op': 'delete',
-                                      'object': self.object_name,
-                                      'object_id': id,
-                                      'referenced_object': 'files',
-                                      'referenced_object_id': ref_id})
-        return None
+        return self.exec_request({'op': 'delete',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'files',
+                                  'referenced_object_id': ref_id})
 
 ###
 ### Events class
@@ -180,11 +270,10 @@ class Events(Eyefi_Base):
         self.object_name = 'events'
 
     def get_files(self, id):
-        response = self.exec_request({'op': 'get',
-                                      'object': self.object_name,
-                                      'object_id': id,
-                                      'referenced_object': 'files'})
-        return response.json()
+        return self.exec_request({'op': 'get',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'files'})
 
 ###
 ### Files class
@@ -194,28 +283,28 @@ class Files(Eyefi_Base):
     def __init__(self):
         self.object_name = 'files'
 
+    def update(self, id, data):
+        raise NotImplementedError('Files().update()')
+
     def add_tags(self, id, data):
-        response = self.exec_request({'op': 'post',
-                                      'object': self.object_name,
-                                      'object_id': id,
-                                      'referenced_object': 'tags'},
-                                     data)
-        return response.json()
+        return self.exec_request({'op': 'post',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'tags'},
+                                  data=data)
 
     def get_tags(self, id):
-        response = self.exec_request({'op': 'get',
-                                      'object': self.object_name,
-                                      'object_id': id,
-                                      'referenced_object': 'tags'})
-        return response.json()
+        return self.exec_request({'op': 'get',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'tags'})
 
     def remove_tag(self, id, ref_id):
-        response = self.exec_request({'op': 'delete',
-                                      'object': self.object_name,
-                                      'object_id': id,
-                                      'referenced_object': 'tags',
-                                      'referenced_object_id': ref_id})
-        return None
+        return self.exec_request({'op': 'delete',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'tags',
+                                  'referenced_object_id': ref_id})
 
 ###
 ### Tags class
@@ -226,20 +315,49 @@ class Tags(Eyefi_Base):
         self.object_name = 'tags'
 
 ###
-### Search class
+### Search classes
 ###
+
+class Search(Eyefi_Base):
+    def __init__(self):
+        self.object_name = 'search/files'
+
+    def create(self, data, files=None):
+        raise NotImplementedError('Search().create()')
+
+    def update(self, id, data):
+        raise NotImplementedError('Search().update()')
+
+    def delete(self, id):
+        raise NotImplementedError('Search().delete()')
+
+class Search_Saved(Eyefi_Base):
+    def __init__(self):
+        self.object_name = 'search/saved'
+
+    def get_files(self, id, params=None):
+        return self.exec_request({'op': 'get',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'files'},
+                                  params=params)
 
 ###
 ### Trash class
 ###
 
+class Trash(Eyefi_Base):
+    def __init__(self):
+        self.object_name = 'trash/files'
 
+    def create(self, data, files=None):
+        raise NotImplementedError('Trash().create()')
 
+    def update(self, id, data):
+        raise NotImplementedError('Trash().update()')
 
-
-
-
-
-
-
-
+    def restore_file(self, id):
+        return self.exec_request({'op': 'post',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'restore'})

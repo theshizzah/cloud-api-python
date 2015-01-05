@@ -22,6 +22,7 @@ albumitems = eyefi.Albums().get()
 for albumitem in albumitems:
     if (albumitem['name'] == 'APITestAlbum'):
         selected_album = albumitem['id']
+        break
 
 ###
 ### Now grab 3 files to add to the album.  A list of files is stored under the 'items' key returned

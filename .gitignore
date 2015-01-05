@@ -54,3 +54,6 @@ target/
 # PyCharm
 .idea/
 
+# JPG Files should be ignored in sample code
+*.jpg
+

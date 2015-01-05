@@ -23,5 +23,6 @@ albumitems = eyefi.Albums().get()
 for albumitem in albumitems:
     if (albumitem['name'] == 'APITestAlbum'):
         selected_album = albumitem['id']
+        break
 
 eyefi.Albums().delete(selected_album)

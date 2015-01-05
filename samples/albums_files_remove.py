@@ -22,6 +22,7 @@ albumitems = eyefi.Albums().get()
 for albumitem in albumitems:
     if (albumitem['name'] == 'APITestAlbum'):
         selected_album = albumitem['id']
+        break
 
 ###
 ### Now get the photos in the album so there is one to remove.  Note that Albums().get_files() returns
