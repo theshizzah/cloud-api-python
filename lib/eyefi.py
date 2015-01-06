@@ -314,6 +314,12 @@ class Tags(Eyefi_Base):
     def __init__(self):
         self.object_name = 'tags'
 
+    def get_files(self, id):
+        return self.exec_request({'op': 'get',
+                                  'object': self.object_name,
+                                  'object_id': id,
+                                  'referenced_object': 'files'})
+
 ###
 ### Search classes
 ###

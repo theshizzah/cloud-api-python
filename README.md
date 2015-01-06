@@ -51,8 +51,8 @@ returned.  If not, then all objects are returned.
 
 ### referenced object id
 
-The referenced object id (or 'ref id') is the numeric id for the object that is being added or removed to the main object id.
-For example, when removing a file from an album, the file id is the referenced object id:
+The referenced object id (or 'ref id') is the numeric id for the object that is being added or removed to the main 
+object.  For example, when removing a file from an album, the file id is the referenced object id:
 
 ```
 eyefi.Albums().remove_file(albumid, fileid)
@@ -162,6 +162,16 @@ Note that many of the tag methods are based off of the Files class and not the T
 | update | PUT /search/saved/{id} | Required | | Required | search_saved.py |
 | delete | DELETE /search/saved/{id} | Required | | | search_saved.py |
 | get_files | GET /search/saved/{id}/files | Required | Optional | | search_saved.py |
+
+### Tags()
+
+| Method | API URL | id | data | Sample |
+|--------|---------|----|------|--------|
+| create | POST /tags | | Required | |
+| get | GET /tags/{id} | Optional | | tags_get.py |
+| update | PUT /tags/{id} | Required | Required | |
+| delete | DELETE /tags/{id} | Required | | |
+| get_files | GET /tags/{id}/files | Required | | |
 
 ### Trash()
 
