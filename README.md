@@ -4,21 +4,24 @@ The Eyefi Cloud Python SDK is a convenience library used to access the Eyefi Clo
 the core data structures for requests and responses can be found in the [cloud-api-doc Github repository]
 (https://github.com/eyefi/cloud-api-doc).
 
-The library is installable from PyPI using 'pip install eyefi'.  Alternatively, place eyefi.py in your
-PYTHON_PATH and import it using 'import eyefi'.
+To use the library, pull the cloud-api-python repository from Github and place the eyefi.py module in your PYTHON_PATH.
+The samples assume that the library is in a 'lib' directory at the same level as the 'samples' directory.
+
+Support for the SDK is provided on a best effort basis through [Stack Overflow](http://www.stackoverflow.com).
+Please make sure to tag your questions with "eyefi".
 
 # Authentication
 
 Eyefi's Cloud API uses the [OAuth 2.0 authorization framework](http://tools.ietf.org/html/rfc6749) 
 for simple-but-effective authentication and authorization.
 
-The SDK provides two methods that make working with auth tokens easier.  They are get_hometoken() and set_token().
-get_hometoken() will retrieve an auth token from the user's home directory in a file called .ef_password.  The
-file should contain a dictionary with the key 'token' as such (replace AUTH_TOKEN with the token received
+The SDK provides two methods that make working with access tokens easier.  They are get_hometoken() and set_token().
+get_hometoken() will retrieve an access token from the user's home directory in a file called .ef_password.  The
+file should contain a dictionary with the key 'token' as such (replace ACCESS_TOKEN with the token received
 from the Eyefi Web App):
 
 ```JSON
-{ "token": "AUTH_TOKEN" }
+{ "token": "ACCESS_TOKEN" }
 ```
 
 Then, in client code, call set_token() on get_hometoken():
@@ -51,7 +54,7 @@ returned.  If not, then all objects are returned.
 
 ### referenced object id
 
-The referenced object id (or 'ref id') is the numeric id for the object that is being added or removed to the main 
+The referenced object id (or 'ref id') is the numeric id for the object that is being added to or removed from the main 
 object.  For example, when removing a file from an album, the file id is the referenced object id:
 
 ```

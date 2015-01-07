@@ -37,7 +37,7 @@ lon_param = result['geometry']['location']['lng']
 ###
 
 search_data = { 'name': 'APITestSavedSearch',
-                'query': { 'has_geodata': True, 'geo_lat': lat_param, 'geo_lon': lon_param, 'geo_distance': '5mi' }
+                'query': {'geo_lat': lat_param, 'geo_lon': lon_param, 'geo_distance': '5mi' }
               }
 
 eyefi.Search_Saved().create(search_data)

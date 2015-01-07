@@ -25,9 +25,8 @@ for albumitem in albumitems:
         break
 
 ###
-### Now get the photos in the album so there is one to remove.  Note that Albums().get_files() returns
-### a bare list of items.  This is slightly different from Files().get().
+### Now get the photos in the album so there is one to remove.
 ###
 
-fileitems = eyefi.Albums().get_files(selected_album)
+fileitems = eyefi.Albums().get_files(selected_album)['items']
 eyefi.Albums().remove_file(selected_album, fileitems[0]['id'])

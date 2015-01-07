@@ -29,7 +29,7 @@ for albumitem in albumitems:
 ### a bare list of items.  This is slightly different from Files().get().
 ###
 
-fileitems = eyefi.Albums().get_files(selected_album)
+fileitems = eyefi.Albums().get_files(selected_album)['items']
 
 fileitems.reverse()
 

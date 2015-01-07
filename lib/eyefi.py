@@ -10,7 +10,8 @@ from uuid import uuid4
 ###
 
 API_PREFIX = 'https://api.eyefi.com/3/'
-AUTH_TOKEN = None
+ACCESS_TOKEN = None
+USER_AGENT = 'eyefi-cloud-api-python'
 
 def get_home_token():
     ###
@@ -24,16 +25,20 @@ def get_home_token():
         return(auth_data['token'])
 
 def set_token(token):
-    global AUTH_TOKEN
-    AUTH_TOKEN = token
+    global ACCESS_TOKEN
+    ACCESS_TOKEN = token
 
 def get_authheader():
-    global AUTH_TOKEN
+    global ACCESS_TOKEN
 
-    if AUTH_TOKEN != None:
-        return 'Bearer ' + AUTH_TOKEN
+    if ACCESS_TOKEN != None:
+        return 'Bearer ' + ACCESS_TOKEN
     else:
         logging.error('Please set an authorization token before making api calls.')
+
+def get_useragent():
+    global USER_AGENT
+    return USER_AGENT
 
 def request_error_handler(response_url, response_code, response_text):
     logging.error('Error in API call: ' + response_url)
@@ -63,17 +68,21 @@ class Eyefi(object):
         if (params != None):
             url = url + '?' + urllib.urlencode(params)
 
-        logging.info('exec_request ' + api_params['op'] + ' for ' + str(url))
-
         ### GET handler
 
         if api_params['op'] == 'get':
             ### For cases where there is a data element for the GET request, add it as URL parameters
             if (data != None):
-                url = url + '?' + urllib.urlencode(data)
+                if url.find('?') == -1:
+                    url = url + '?' + urllib.urlencode(data)
+                else:
+                    url = url + '&' + urllib.urlencode(data)
+
+            logging.info('exec_request ' + api_params['op'] + ' for ' + str(url))
 
             request = urllib2.Request(url)
             request.add_header('Authorization', get_authheader())
+            request.add_header('User-Agent', get_useragent())
             response = urllib2.urlopen(request)
             if (response.getcode() != 200):
                 request_error_handler(url, response.getcode(), response.read())
@@ -89,8 +98,11 @@ class Eyefi(object):
             if (data == None):
                 data = '{}'
 
+            logging.info('exec_request ' + api_params['op'] + ' for ' + str(url))
+
             request = urllib2.Request(url, data=json.dumps(data))
             request.add_header('Authorization', get_authheader())
+            request.add_header('User-Agent', get_useragent())
             request.add_header('Content-type', 'application/json')
             response = urllib2.urlopen(request)
 
@@ -141,8 +153,11 @@ class Eyefi(object):
 
             ### Process the upload request
 
+            logging.info('exec_request ' + api_params['op'] + ' for ' + str(url))
+
             request = urllib2.Request(url)
             request.add_header('Authorization', get_authheader())
+            request.add_header('User-Agent', get_useragent())
             request.add_header('Content-type', 'multipart/form-data; boundary=' + boundary)
             request.add_header('Content-length', len(request_body_str))
             request.add_data(request_body_str)
@@ -158,9 +173,12 @@ class Eyefi(object):
         ### PUT handler
 
         elif api_params['op'] == 'put':
+            logging.info('exec_request ' + api_params['op'] + ' for ' + str(url))
+
             opener = urllib2.build_opener(urllib2.HTTPHandler)
             request = urllib2.Request(url, data=json.dumps(data))
             request.add_header('Authorization', get_authheader())
+            request.add_header('User-Agent', get_useragent())
             request.add_header('Content-type', 'application/json')
             request.get_method = lambda: 'PUT'
             response = opener.open(request)
@@ -175,9 +193,12 @@ class Eyefi(object):
         ### DELETE handler
 
         elif api_params['op'] == 'delete':
+            logging.info('exec_request ' + api_params['op'] + ' for ' + str(url))
+
             opener = urllib2.build_opener(urllib2.HTTPHandler)
             request = urllib2.Request(url)
             request.add_header('Authorization', get_authheader())
+            request.add_header('User-Agent', get_useragent())
             request.get_method = lambda: 'DELETE'
             response = opener.open(request)
 
@@ -242,10 +263,13 @@ class Albums(Eyefi_Base):
                                   data=data)
 
     def get_files(self, id):
-        return self.exec_request({'op': 'get',
-                                  'object': self.object_name,
-                                  'object_id': id,
-                                  'referenced_object': 'files'})
+        ### Create a simulated paging response
+        items_response = self.exec_request({'op': 'get',
+                                            'object': self.object_name,
+                                            'object_id': id,
+                                            'referenced_object': 'files'})
+        paged_response = {'total_count': len(items_response), 'items': items_response}
+        return paged_response
 
     def update_files(self, id, data):
         return self.exec_request({'op': 'put',
@@ -315,10 +339,13 @@ class Tags(Eyefi_Base):
         self.object_name = 'tags'
 
     def get_files(self, id):
-        return self.exec_request({'op': 'get',
-                                  'object': self.object_name,
-                                  'object_id': id,
-                                  'referenced_object': 'files'})
+        ### Create a simulated paging response
+        items_response = self.exec_request({'op': 'get',
+                                            'object': self.object_name,
+                                            'object_id': id,
+                                            'referenced_object': 'files'})
+        paged_response = {'total_count': len(items_response), 'items': items_response}
+        return paged_response
 
 ###
 ### Search classes

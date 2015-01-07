@@ -38,7 +38,7 @@ lon_param = result['geometry']['location']['lng']
 ###
 
 page_params = {'page': 1, 'per_page': 100}
-search_data = { 'has_geodata': True, 'geo_lat': lat_param, 'geo_lon': lon_param, 'geo_distance': '10mi'}
+search_data = {'geo_lat': lat_param, 'geo_lon': lon_param, 'geo_distance': '10mi'}
 
 fileitems = eyefi.Search().get(data=search_data, params=page_params)['items']
 
