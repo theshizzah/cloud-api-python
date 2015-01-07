@@ -7,8 +7,8 @@ the core data structures for requests and responses can be found in the [cloud-a
 To use the library, pull the cloud-api-python repository from Github and place the eyefi.py module in your PYTHON_PATH.
 The samples assume that the library is in a 'lib' directory at the same level as the 'samples' directory.
 
-Support for the SDK is provided on a best effort basis through [Stack Overflow](http://www.stackoverflow.com).
-Please make sure to tag your questions with "eyefi".
+Support for the API is provided on a best effort basis through 
+[Github Issues](https://github.com/eyefi/cloud-api-python/issues).
 
 # Authentication
 
