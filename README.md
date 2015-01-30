@@ -10,6 +10,8 @@ The samples assume that the library is in a 'lib' directory at the same level as
 Support for the API is provided on a best effort basis through 
 [Github Issues](https://github.com/eyefi/cloud-api-python/issues).
 
+Compatibility testing has been done on Python 2.7.8.
+
 # Authentication
 
 Eyefi's Cloud API uses the [OAuth 2.0 authorization framework](http://tools.ietf.org/html/rfc6749) 
@@ -176,14 +178,6 @@ Note that many of the tag methods are based off of the Files class and not the T
 | delete | DELETE /tags/{id} | Required | | |
 | get_files | GET /tags/{id}/files | Required | | |
 
-### Trash()
-
-| Method | API URL | id | Sample |
-|--------|---------|----|--------|--------|------|-------|--------|
-| get | GET /trash | | trash.py |
-| delete (empty trash) | DELETE /trash | | trash.py |
-| restore_file | GET /trash/{id}/files | Required | trash.py |
-
 ## Errors
 
 If an error occurs a RuntimeError exception is thrown and details are provided using the logging subsystem.
@@ -198,8 +192,7 @@ logging.basicConfig(level=logging.INFO)
 
 The samples are grouped so that there can be a logical flow of create, update, add referenced items, remove
 referenced items, and delete.  For Albums, albums_test.sh shows the sequence.  For Files and Tags, it's
-files_test.sh.  Saved search is encapsulated in one sample which is search_saved.py.  Similarly, trash.py fully
-encapsulates the Trash samples.
+files_test.sh.  Saved search is encapsulated in one sample which is search_saved.py.
 
 Additionally, there are three composite examples that show different classes interacting.  They are:
 
@@ -210,9 +203,6 @@ Additionally, there are three composite examples that show different classes int
 Please note that the convenience sample files_test_create.py and the warholizer.py use the Pillow implementation
 of the Python Imaging Library which is not in most standard Python distributions.  See installation instructions 
 in either of those samples.
-
-Finally, the samples involving file deletion and Trash manipulation can be more reliable if the Trash is empty 
-when the sequence is executed.
 
 
 
