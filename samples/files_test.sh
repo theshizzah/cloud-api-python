@@ -12,5 +12,3 @@ echo python files_remove_tag.py
 python files_remove_tag.py
 echo python files_delete.py
 python files_delete.py
-echo python trash.py
-python trash.py

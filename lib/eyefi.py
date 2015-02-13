@@ -375,22 +375,3 @@ class Search_Saved(Eyefi_Base):
                                   'referenced_object': 'files'},
                                   params=params)
 
-###
-### Trash class
-###
-
-class Trash(Eyefi_Base):
-    def __init__(self):
-        self.object_name = 'trash/files'
-
-    def create(self, data, files=None):
-        raise NotImplementedError('Trash().create()')
-
-    def update(self, id, data):
-        raise NotImplementedError('Trash().update()')
-
-    def restore_file(self, id):
-        return self.exec_request({'op': 'post',
-                                  'object': self.object_name,
-                                  'object_id': id,
-                                  'referenced_object': 'restore'})
